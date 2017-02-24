@@ -3,10 +3,12 @@
 
 /*working variables*/
 unsigned long lastTime;
+unsigned long startTime = 0;
 double Input, Output, Setpoint;
 double errSum=0, lastErr=0;
 double kp, ki, kd;
 double error=0;
+double printed = 0;
 void Compute()
 {
    /*How long since we last calculated*/
@@ -46,15 +48,20 @@ void setup()
   Input = analogRead(0);
   Setpoint = int(Input+512) % 1024;
   //0.05, 0.0001, 0.03
-  SetTunings(0.1, 0, 0);
+  //0.1, 0, 0
+  SetTunings(5, 0.001, 2);
   lastTime = millis();
+  //startTime = millis();
   Serial.begin(9600);
 }
 
 void loop()
 {
   Input = analogRead(0);
-  Compute();
+  if (millis() < 1500) {
+      Compute();
+  } 
+  
   if (Output >= 0) {
     analogWrite(3, min(Output, 255));
     analogWrite(4, 0);
@@ -65,4 +72,8 @@ void loop()
   Serial.print(millis());
   Serial.print(",");
   Serial.println(error);
+//  if (error < 50 and error > -50 and printed == 0) {
+//     Serial.println(millis()-startTime);
+//     printed = 1; 
+//   }
 }
