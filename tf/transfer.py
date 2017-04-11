@@ -50,8 +50,8 @@ class Graph(object):
             else:
                 self.netlist[info[2]].connect(info, 1)
 
-    def build_kvl(self):
-        """Build the Ax=b form of KVL equations."""
+    def build_kcl(self):
+        """Build the Ax=b form of KCL equations."""
         s = symbols('s')
         variables = []
         nodes = list(self.netlist.keys())
@@ -72,8 +72,10 @@ class Graph(object):
 
         # Main processing loop
         matrix = []
+        voltages = []
         for node in nodes:
-            # The last column in equations corresponds to b
+            # The last column in equations corresponds to 0
+            # Second last column in equtions corresponds to b
             equation = [0] * (len(nodes) + 2)
             variables.append(symbols('v' + str(node)))
             info = self.netlist[str(node)]
@@ -93,6 +95,13 @@ class Graph(object):
                     else:
                         equation[-2] += -1 * float(c["value"])
                 elif c["element"] == 'v':
+                    # Check whether this voltage source has been considered
+                    # v_node = [node, int(c["node"])]
+                    # v_node.sort()
+                    # if v_node in voltages:
+                    #     continue
+                    # else:
+                    #     voltages.append(v_node)
                     equation = [0] * (len(nodes) + 2)
                     equation[nmap[node]] = 1
                     equation[nmap[c["node"]]] = -1
@@ -105,7 +114,7 @@ class Graph(object):
         return matrix, variables, nmap
 
 g = Graph("netlist.txt")
-matrix, variables, nmap = g.build_kvl()
+matrix, variables, nmap = g.build_kcl()
 solution = solve_linear_system(Matrix(matrix), *variables)
 node1 = input("Enter denominator :- ")
 node2 = input("Enter numerator :- ")
